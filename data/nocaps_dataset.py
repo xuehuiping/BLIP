@@ -29,4 +29,34 @@ class nocaps_eval(Dataset):
         image = Image.open(image_path).convert('RGB')   
         image = self.transform(image)          
         
-        return image, int(ann['img_id'])    
+        return image, int(ann['img_id'])
+
+
+class depositphotos_eval(Dataset):
+    def __init__(self, transform, image_root, ann_root, split):
+        self.annotation = []
+        self.transform = transform
+        self.image_root = image_root
+        self.split = split
+        imgs = os.listdir(os.path.join(image_root, split))
+        img_id = 0
+        for img in imgs:
+            ann = {}
+            ann["image"] = os.path.join(self.split, img)
+            ann["img_id"] = img_id
+            self.annotation.append(ann)
+            img_id = img_id + 1
+        with open(os.path.join(ann_root, 'depositphotos_' + split + '.json'), 'w') as f:
+            json.dump(self.annotation, f)
+
+    def __len__(self):
+        return len(self.annotation)
+
+    def __getitem__(self, index):
+        ann = self.annotation[index]
+
+        image_path = os.path.join(self.image_root, ann['image'])
+        image = Image.open(image_path).convert('RGB')
+        image = self.transform(image)
+
+        return image, int(ann['img_id'])

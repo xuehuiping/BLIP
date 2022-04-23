@@ -44,13 +44,14 @@ def pre_question(question,max_ques_words=50):
     return question
 
 
-def save_result(result, result_dir, filename, remove_duplicate=''):
+def save_result(result, result_dir, distributed, filename, remove_duplicate=''):
     result_file = os.path.join(result_dir, '%s_rank%d.json'%(filename,utils.get_rank()))
     final_result_file = os.path.join(result_dir, '%s.json'%filename)
     
     json.dump(result,open(result_file,'w'))
 
-    dist.barrier()
+    if distributed:
+        dist.barrier()
 
     if utils.is_main_process():   
         # combine results from all processes

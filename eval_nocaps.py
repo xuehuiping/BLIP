@@ -7,7 +7,7 @@
 '''
 import argparse
 import os
-import ruamel_yaml as yaml
+import ruamel.yaml as yaml
 import numpy as np
 import random
 import time
@@ -64,7 +64,7 @@ def main(args, config):
 
     #### Dataset #### 
     print("Creating captioning dataset")
-    val_dataset, test_dataset = create_dataset('nocaps', config)  
+    val_dataset, test_dataset = create_dataset(args.dataset, config)
 
     if args.distributed:
         num_tasks = utils.get_world_size()
@@ -90,9 +90,9 @@ def main(args, config):
         model_without_ddp = model.module    
     
     val_result = evaluate(model_without_ddp, val_loader, device, config)  
-    val_result_file = save_result(val_result, args.result_dir, 'val', remove_duplicate='image_id')   
+    val_result_file = save_result(val_result, args.result_dir, args.distributed, 'val', remove_duplicate='image_id')
     test_result = evaluate(model_without_ddp, test_loader, device, config)  
-    test_result_file = save_result(test_result, args.result_dir, 'test', remove_duplicate='image_id') 
+    test_result_file = save_result(test_result, args.result_dir, args.distributed, 'test', remove_duplicate='image_id')
 
 
 if __name__ == '__main__':
@@ -103,7 +103,8 @@ if __name__ == '__main__':
     parser.add_argument('--seed', default=42, type=int)
     parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')    
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
-    parser.add_argument('--distributed', default=True, type=bool)
+    parser.add_argument('--distributed', default=False, type=bool)
+    parser.add_argument('--dataset', default='nocaps')
     args = parser.parse_args()
 
     config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
